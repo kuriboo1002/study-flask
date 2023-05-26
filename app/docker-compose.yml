@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  api:
+    build: ./flask
+    networks:
+      - frontend
+      - backend
+    container_name: api
+    hostname: api
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:5.7
+    networks:
+      - backend
+    container_name: mysql
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+      TZ: 'Asia/Tokyo'
+    volumes:
+    # - ./mysql/data/:/var/lib/mysql
+    - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    - ./mysql/sql/:/docker-entrypoint-initdb.d
+    ports:
+    - 3306:3306
+    healthcheck:
+        test: mysqladmin ping -h 127.0.0.1 -uroot -proot
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
